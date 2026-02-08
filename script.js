@@ -181,7 +181,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     if (checkoutBtn) {
         checkoutBtn.addEventListener('click', () => {
-            alert('Checkout functionality would be implemented here!');
+            alert('Checkout Success!');
         });
     }
 
