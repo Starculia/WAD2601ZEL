@@ -129,7 +129,6 @@ function showMultipleResults(products) {
 
 // 3. EVENT LISTENERS (Kunci Agar Tombol Berfungsi)
 document.addEventListener('DOMContentLoaded', () => {
-    console.log('DOM Content Loaded - Setting up event listeners');
     const btn = document.getElementById('send-btn'); // ID Tombol Discover
     const input = document.getElementById('user-input'); // ID Input Teks
     const cartBtn = document.getElementById('cart-btn');
@@ -137,12 +136,6 @@ document.addEventListener('DOMContentLoaded', () => {
     const clearCartBtn = document.getElementById('clear-cart-btn');
     const checkoutBtn = document.getElementById('checkout-btn');
     const cartOverlay = document.getElementById('cart-overlay');
-
-    console.log('Elements found:', {
-        cartBtn: !!cartBtn,
-        closeCartBtn: !!closeCartBtn,
-        cartOverlay: !!cartOverlay
-    });
 
     if (btn) {
         btn.addEventListener('click', handleSearch);
@@ -156,21 +149,18 @@ document.addEventListener('DOMContentLoaded', () => {
 
     if (cartBtn) {
         cartBtn.addEventListener('click', () => {
-            console.log('Cart button clicked');
             toggleCart();
         });
     }
 
     if (closeCartBtn) {
         closeCartBtn.addEventListener('click', () => {
-            console.log('Close cart button clicked');
             toggleCart();
         });
     }
 
     if (cartOverlay) {
         cartOverlay.addEventListener('click', () => {
-            console.log('Cart overlay clicked');
             toggleCart();
         });
     }
@@ -181,12 +171,35 @@ document.addEventListener('DOMContentLoaded', () => {
 
     if (checkoutBtn) {
         checkoutBtn.addEventListener('click', () => {
-            alert('Checkout Success!');
+            openCheckout();
         });
+    }
+
+    // Checkout modal event listeners
+    const closeCheckoutBtn = document.getElementById('close-checkout');
+    const placeOrderBtn = document.getElementById('place-order-btn');
+    const closeSuccessBtn = document.getElementById('close-success');
+
+    if (closeCheckoutBtn) {
+        closeCheckoutBtn.addEventListener('click', closeCheckout);
+    }
+
+    if (placeOrderBtn) {
+        placeOrderBtn.addEventListener('click', processOrder);
+    }
+
+    if (closeSuccessBtn) {
+        closeSuccessBtn.addEventListener('click', closeSuccess);
     }
 
     // Initialize cart count on page load
     updateCartCount();
+    
+    // Also initialize cart display if sidebar is somehow visible
+    const sidebar = document.getElementById('cart-sidebar');
+    if (sidebar && sidebar.classList.contains('cart-sidebar-visible')) {
+        renderCart();
+    }
 });
 
 // 4. Cek apakah database kosong, jika ya isi data awal
@@ -211,11 +224,10 @@ db.collection("products").limit(1).get().then(snapshot => {
 // ADD TO CART LOGIC
 function addToCart(product) {
   let cart = JSON.parse(localStorage.getItem("cart")) || [];
+  const existingItem = cart.find(item => item.productId === product.id);
 
-  const existing = cart.find(item => item.productId === product.id);
-
-  if (existing) {
-    existing.quantity++;
+  if (existingItem) {
+    existingItem.quantity += 1;
   } else {
     cart.push({
       productId: product.id,
@@ -229,21 +241,57 @@ function addToCart(product) {
   updateCartCount();
   renderCart();
   animateCart();
+  
+  // Show notification popup
+  showCartNotification(product.name);
+}
+
+function showCartNotification(productName) {
+  const notification = document.getElementById('cart-notification');
+  const notificationText = document.getElementById('notification-text');
+  
+  // Clear any existing timeout
+  if (window.notificationTimeout) {
+    clearTimeout(window.notificationTimeout);
+  }
+  
+  // Update notification text
+  notificationText.textContent = `${productName} added to cart!`;
+  
+  // Remove show class to ensure clean state
+  notification.classList.remove('show');
+  
+  // Force a reflow to ensure the class removal takes effect
+  void notification.offsetWidth;
+  
+  // Add show class to trigger animation
+  notification.classList.add('show');
+  
+  // Hide after 3 seconds
+  window.notificationTimeout = setTimeout(() => {
+    notification.classList.remove('show');
+  }, 3000);
 }
 
 function updateCartCount() {
   const cart = JSON.parse(localStorage.getItem("cart")) || [];
   const totalItems = cart.reduce((sum, item) => sum + item.quantity, 0);
-  document.getElementById('cart-count').textContent = totalItems;
+  const cartCountElement = document.getElementById('cart-count');
+  
+  if (cartCountElement) {
+    cartCountElement.textContent = totalItems;
+    // Show/hide badge based on count
+    if (totalItems > 0) {
+      cartCountElement.style.display = 'flex';
+    } else {
+      cartCountElement.style.display = 'none';
+    }
+  }
 }
 
 function toggleCart() {
-  console.log('toggleCart function called');
   const sidebar = document.getElementById('cart-sidebar');
   const overlay = document.getElementById('cart-overlay');
-  
-  console.log('Sidebar element:', sidebar);
-  console.log('Overlay element:', overlay);
   
   if (sidebar && overlay) {
     // Toggle custom CSS classes instead of Tailwind
@@ -257,14 +305,9 @@ function toggleCart() {
       overlay.classList.add('hidden');
     }
     
-    console.log('Sidebar classes after toggle:', sidebar.className);
-    console.log('Overlay classes after toggle:', overlay.className);
-    
     if (sidebar.classList.contains('cart-sidebar-visible')) {
       renderCart();
     }
-  } else {
-    console.error('Sidebar or overlay element not found');
   }
 }
 
@@ -353,6 +396,25 @@ function clearCart() {
   localStorage.removeItem("cart");
   updateCartCount();
   renderCart();
+  
+  // Show confirmation message
+  const chatWindow = document.getElementById('chat-window');
+  const div = document.createElement('div');
+  div.className = 'servant-bubble p-4 max-w-[85%] animate-fadeIn';
+  div.innerHTML = `
+    <div class="flex items-start gap-3">
+      <div class="w-8 h-8 rounded-full gold-bg flex items-center justify-center flex-shrink-0 mt-1">
+        <svg class="w-5 h-5 text-black" fill="currentColor" viewBox="0 0 24 24">
+          <path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/>
+        </svg>
+      </div>
+      <div>
+        <p class="text-sm font-semibold">Your royal cart has been cleared, Your Majesty.</p>
+      </div>
+    </div>
+  `;
+  chatWindow.appendChild(div);
+  chatWindow.scrollTop = chatWindow.scrollHeight;
 }
 
 function removeFromCart(id) {
@@ -361,4 +423,252 @@ function removeFromCart(id) {
   localStorage.setItem("cart", JSON.stringify(cart));
   updateCartCount();
   renderCart();
+}
+
+// CHECKOUT FUNCTIONS
+function openCheckout() {
+  const cart = JSON.parse(localStorage.getItem("cart")) || [];
+  
+  if (cart.length === 0) {
+    alert('Your cart is empty! Add some items first.');
+    return;
+  }
+  
+  renderCheckoutItems();
+  calculateCheckoutTotals();
+  
+  // Load saved address if exists
+  loadSavedAddress();
+  
+  // Close cart sidebar and open checkout modal
+  toggleCart();
+  
+  const checkoutModal = document.getElementById('checkout-modal');
+  checkoutModal.classList.remove('hidden');
+  // Trigger transition
+  setTimeout(() => {
+    checkoutModal.classList.add('show');
+  }, 10);
+  document.body.style.overflow = 'hidden';
+}
+
+function closeCheckout() {
+  // Save current address before closing
+  saveCurrentAddress();
+  
+  const checkoutModal = document.getElementById('checkout-modal');
+  checkoutModal.classList.remove('show');
+  // Wait for transition to complete before hiding
+  setTimeout(() => {
+    checkoutModal.classList.add('hidden');
+  }, 300);
+  document.body.style.overflow = 'auto';
+}
+
+function saveCurrentAddress() {
+  const addressData = {
+    fullName: document.getElementById('full-name').value,
+    phone: document.getElementById('phone').value,
+    address: document.getElementById('address').value,
+    city: document.getElementById('city').value,
+    postalCode: document.getElementById('postal-code').value
+  };
+  
+  // Only save if at least one field is filled
+  if (addressData.fullName || addressData.phone || addressData.address) {
+    localStorage.setItem('savedAddress', JSON.stringify(addressData));
+  }
+}
+
+function loadSavedAddress() {
+  const savedAddress = localStorage.getItem('savedAddress');
+  
+  if (savedAddress) {
+    const addressData = JSON.parse(savedAddress);
+    let hasData = false;
+    
+    // Pre-fill form fields with saved data
+    if (addressData.fullName) {
+      document.getElementById('full-name').value = addressData.fullName;
+      hasData = true;
+    }
+    if (addressData.phone) {
+      document.getElementById('phone').value = addressData.phone;
+      hasData = true;
+    }
+    if (addressData.address) {
+      document.getElementById('address').value = addressData.address;
+      hasData = true;
+    }
+    if (addressData.city) {
+      document.getElementById('city').value = addressData.city;
+      hasData = true;
+    }
+    if (addressData.postalCode) {
+      document.getElementById('postal-code').value = addressData.postalCode;
+      hasData = true;
+    }
+    
+    // Show saved address indicator if data was loaded
+    if (hasData) {
+      const indicator = document.getElementById('address-saved-indicator');
+      if (indicator) {
+        indicator.classList.remove('hidden');
+      }
+    }
+  }
+}
+
+function renderCheckoutItems() {
+  const cart = JSON.parse(localStorage.getItem("cart")) || [];
+  const container = document.getElementById("checkout-items");
+  
+  container.innerHTML = "";
+  let subtotal = 0;
+  
+  cart.forEach(item => {
+    const itemTotal = item.price * item.quantity;
+    subtotal += itemTotal;
+    
+    container.innerHTML += `
+      <div class="flex justify-between items-center p-3 bg-black/30 rounded-lg">
+        <div class="flex-1">
+          <p class="text-white font-semibold">${item.name}</p>
+          <p class="text-sm text-gray-400">${item.quantity} × Rp ${item.price.toLocaleString()}</p>
+        </div>
+        <p class="gold-text font-semibold">Rp ${itemTotal.toLocaleString()}</p>
+      </div>
+    `;
+  });
+}
+
+function calculateCheckoutTotals() {
+  const cart = JSON.parse(localStorage.getItem("cart")) || [];
+  const subtotal = cart.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+  const deliveryFee = 10000;
+  const tax = Math.round(subtotal * 0.1);
+  const total = subtotal + deliveryFee + tax;
+  
+  document.getElementById('checkout-subtotal').textContent = `Rp ${subtotal.toLocaleString()}`;
+  document.getElementById('checkout-tax').textContent = `Rp ${tax.toLocaleString()}`;
+  document.getElementById('checkout-total').textContent = `Rp ${total.toLocaleString()}`;
+}
+
+function validateForm() {
+  const fullName = document.getElementById('full-name').value.trim();
+  const phone = document.getElementById('phone').value.trim();
+  const address = document.getElementById('address').value.trim();
+  const city = document.getElementById('city').value.trim();
+  const postalCode = document.getElementById('postal-code').value.trim();
+  
+  if (!fullName || !phone || !address || !city || !postalCode) {
+    alert('Please fill in all required fields.');
+    return false;
+  }
+  
+  if (phone.length < 10) {
+    alert('Please enter a valid phone number.');
+    return false;
+  }
+  
+  return true;
+}
+
+function processOrder() {
+  if (!validateForm()) {
+    return;
+  }
+  
+  const cart = JSON.parse(localStorage.getItem("cart")) || [];
+  if (cart.length === 0) {
+    alert('Your cart is empty!');
+    return;
+  }
+  
+  // Save current address before processing order
+  saveCurrentAddress();
+  
+  // Get form data
+  const orderData = {
+    fullName: document.getElementById('full-name').value,
+    phone: document.getElementById('phone').value,
+    address: document.getElementById('address').value,
+    city: document.getElementById('city').value,
+    postalCode: document.getElementById('postal-code').value,
+    paymentMethod: document.querySelector('input[name="payment"]:checked').value,
+    items: cart,
+    subtotal: cart.reduce((sum, item) => sum + (item.price * item.quantity), 0),
+    deliveryFee: 10000,
+    tax: Math.round(cart.reduce((sum, item) => sum + (item.price * item.quantity), 0) * 0.1),
+    total: 0,
+    orderDate: new Date().toISOString(),
+    orderId: 'ORD' + Date.now()
+  };
+  
+  orderData.total = orderData.subtotal + orderData.deliveryFee + orderData.tax;
+  
+  // Show loading
+  showLoading();
+  
+  // Simulate order processing
+  setTimeout(() => {
+    hideLoading();
+    showSuccess(orderData);
+    clearCart();
+    closeCheckout();
+  }, 3000);
+}
+
+function showLoading() {
+  const loadingOverlay = document.getElementById('loading-overlay');
+  loadingOverlay.classList.remove('hidden');
+  // Trigger transition
+  setTimeout(() => {
+    loadingOverlay.classList.add('show');
+  }, 10);
+}
+
+function hideLoading() {
+  const loadingOverlay = document.getElementById('loading-overlay');
+  loadingOverlay.classList.remove('show');
+  // Wait for transition to complete before hiding
+  setTimeout(() => {
+    loadingOverlay.classList.add('hidden');
+  }, 300);
+}
+
+function showSuccess(orderData) {
+  const successModal = document.getElementById('success-modal');
+  const orderDetails = document.getElementById('order-details');
+  
+  orderDetails.innerHTML = `
+    <div class="space-y-2">
+      <p class="text-sm"><strong>Order ID:</strong> ${orderData.orderId}</p>
+      <p class="text-sm"><strong>Name:</strong> ${orderData.fullName}</p>
+      <p class="text-sm"><strong>Phone:</strong> ${orderData.phone}</p>
+      <p class="text-sm"><strong>Address:</strong> ${orderData.address}, ${orderData.city}</p>
+      <p class="text-sm"><strong>Payment:</strong> ${orderData.paymentMethod}</p>
+      <p class="text-sm"><strong>Total:</strong> <span class="gold-text">Rp ${orderData.total.toLocaleString()}</span></p>
+    </div>
+  `;
+  
+  successModal.classList.remove('hidden');
+  // Trigger transition
+  setTimeout(() => {
+    successModal.classList.add('show');
+  }, 10);
+  document.body.style.overflow = 'hidden';
+}
+
+function closeSuccess() {
+  const successModal = document.getElementById('success-modal');
+  successModal.classList.remove('show');
+  // Wait for transition to complete before hiding
+  setTimeout(() => {
+    successModal.classList.add('hidden');
+  }, 300);
+  document.body.style.overflow = 'auto';
+  
+  // Clear form
+  document.getElementById('address-form').reset();
 }

@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Local Luxury | Buyer is King</title>
+    <title>Tempat. | Buyer is King</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
@@ -117,8 +117,164 @@
         </div>
     </div>
 
+    <!-- Cart Notification Popup -->
+    <div id="cart-notification" class="cart-notification">
+        <svg fill="currentColor" viewBox="0 0 24 24">
+            <path d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z"/>
+        </svg>
+        <span id="notification-text">Item added to cart!</span>
+    </div>
+
     <!-- Cart Overlay -->
-    <div id="cart-overlay" class="fixed inset-0 bg-black/50 z-40 hidden"></div>
+    <div id="cart-overlay" class="fixed inset-0 bg-black/50 z-40 hidden" onclick="toggleCart()"></div>
+
+    <!-- Checkout Modal -->
+    <div id="checkout-modal" class="fixed inset-0 bg-black/80 z-[9999] hidden overflow-y-auto">
+        <div class="min-h-screen px-4 py-8 flex items-center justify-center">
+            <div class="bg-black/95 glass-morphism border gold-border rounded-2xl max-w-4xl w-full max-h-[90vh] overflow-y-auto">
+                <!-- Checkout Header -->
+                <div class="p-6 border-b gold-border flex justify-between items-center">
+                    <h2 class="text-2xl font-bold gold-text">Royal Checkout</h2>
+                    <button id="close-checkout" class="text-gray-400 hover:text-white">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                        </svg>
+                    </button>
+                </div>
+
+                <div class="p-6">
+                    <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                        <!-- Left Column: Cart Items & Address -->
+                        <div class="space-y-6">
+                            <!-- Cart Items -->
+                            <div>
+                                <h3 class="text-lg font-semibold gold-text mb-4">Order Items</h3>
+                                <div id="checkout-items" class="space-y-3">
+                                    <!-- Cart items will be rendered here -->
+                                </div>
+                            </div>
+
+                            <!-- Address Form -->
+                            <div>
+                                <h3 class="text-lg font-semibold gold-text mb-4">Delivery Address</h3>
+                                <div id="address-saved-indicator" class="hidden mb-3 p-2 bg-green-500/20 border border-green-500/50 rounded-lg text-green-400 text-sm">
+                                    <span class="flex items-center gap-2">
+                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+                                        </svg>
+                                        Address saved!
+                                    </span>
+                                </div>
+                                <form id="address-form" class="space-y-4">
+                                    <div>
+                                        <label class="block text-sm font-medium text-gray-300 mb-1">Full Name</label>
+                                        <input type="text" id="full-name" required class="w-full luxury-input p-3 rounded-lg text-white placeholder-gray-500" placeholder="Enter your full name">
+                                    </div>
+                                    <div>
+                                        <label class="block text-sm font-medium text-gray-300 mb-1">Phone Number</label>
+                                        <input type="tel" id="phone" required class="w-full luxury-input p-3 rounded-lg text-white placeholder-gray-500" placeholder="Enter your phone number">
+                                    </div>
+                                    <div>
+                                        <label class="block text-sm font-medium text-gray-300 mb-1">Address</label>
+                                        <textarea id="address" required rows="3" class="w-full luxury-input p-3 rounded-lg text-white placeholder-gray-500" placeholder="Enter your delivery address"></textarea>
+                                    </div>
+                                    <div class="grid grid-cols-2 gap-4">
+                                        <div>
+                                            <label class="block text-sm font-medium text-gray-300 mb-1">City</label>
+                                            <input type="text" id="city" required class="w-full luxury-input p-3 rounded-lg text-white placeholder-gray-500" placeholder="City">
+                                        </div>
+                                        <div>
+                                            <label class="block text-sm font-medium text-gray-300 mb-1">Postal Code</label>
+                                            <input type="text" id="postal-code" required class="w-full luxury-input p-3 rounded-lg text-white placeholder-gray-500" placeholder="Postal code">
+                                        </div>
+                                    </div>
+                                </form>
+                            </div>
+                        </div>
+
+                        <!-- Right Column: Payment & Summary -->
+                        <div class="space-y-6">
+                            <!-- Payment Options -->
+                            <div>
+                                <h3 class="text-lg font-semibold gold-text mb-4">Payment Method</h3>
+                                <div class="space-y-3">
+                                    <label class="flex items-center p-3 border gold-border rounded-lg cursor-pointer hover:bg-black/30">
+                                        <input type="radio" name="payment" value="cash" class="mr-3" checked>
+                                        <span class="text-white">Cash on Delivery</span>
+                                    </label>
+                                    <label class="flex items-center p-3 border gold-border rounded-lg cursor-pointer hover:bg-black/30">
+                                        <input type="radio" name="payment" value="transfer" class="mr-3">
+                                        <span class="text-white">Bank Transfer</span>
+                                    </label>
+                                    <label class="flex items-center p-3 border gold-border rounded-lg cursor-pointer hover:bg-black/30">
+                                        <input type="radio" name="payment" value="ewallet" class="mr-3">
+                                        <span class="text-white">E-Wallet (GoPay, OVO, Dana)</span>
+                                    </label>
+                                </div>
+                            </div>
+
+                            <!-- Order Summary -->
+                            <div>
+                                <h3 class="text-lg font-semibold gold-text mb-4">Order Summary</h3>
+                                <div class="space-y-3">
+                                    <div class="flex justify-between text-gray-300">
+                                        <span>Subtotal</span>
+                                        <span id="checkout-subtotal">Rp 0</span>
+                                    </div>
+                                    <div class="flex justify-between text-gray-300">
+                                        <span>Delivery Fee</span>
+                                        <span id="checkout-delivery">Rp 10,000</span>
+                                    </div>
+                                    <div class="flex justify-between text-gray-300">
+                                        <span>Tax (10%)</span>
+                                        <span id="checkout-tax">Rp 0</span>
+                                    </div>
+                                    <div class="border-t gold-border pt-3">
+                                        <div class="flex justify-between text-xl font-bold gold-text">
+                                            <span>Total</span>
+                                            <span id="checkout-total">Rp 0</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Checkout Button -->
+                            <button id="place-order-btn" class="w-full luxury-button text-black font-bold py-4 rounded-xl font-semibold text-lg">
+                                Place Royal Order
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Loading Overlay -->
+    <div id="loading-overlay" class="fixed inset-0 bg-black/90 z-[10000] hidden flex items-center justify-center">
+        <div class="text-center">
+            <div class="w-16 h-16 border-4 border-gold-primary border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+            <p class="text-white text-lg">Processing your order...</p>
+        </div>
+    </div>
+
+    <!-- Success Modal -->
+    <div id="success-modal" class="fixed inset-0 bg-black/80 z-[10001] hidden flex items-center justify-center">
+        <div class="bg-black/95 glass-morphism border gold-border rounded-2xl p-8 max-w-md w-full text-center">
+            <div class="w-20 h-20 bg-green-500 rounded-full flex items-center justify-center mx-auto mb-4">
+                <svg class="w-10 h-10 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+                </svg>
+            </div>
+            <h3 class="text-2xl font-bold gold-text mb-2">Order Successful!</h3>
+            <p class="text-gray-300 mb-6">Your royal order has been placed successfully. We'll prepare your food with care!</p>
+            <div id="order-details" class="text-left bg-black/30 rounded-lg p-4 mb-6">
+                <!-- Order details will be inserted here -->
+            </div>
+            <button id="close-success" class="w-full luxury-button text-black font-bold py-3 rounded-xl font-semibold">
+                Continue Shopping
+            </button>
+        </div>
+    </div>
 
     <script src="script.js"></script>
 

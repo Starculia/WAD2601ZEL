@@ -622,11 +622,6 @@ body::before {
   }
 }
 
-/* Marquee hover pause */
-.marquee-container:hover .marquee-text {
-  animation-play-state: paused;
-}
-
 /* Responsive marquee */
 @media (max-width: 640px) {
   .marquee-container {
@@ -642,5 +637,254 @@ body::before {
 @media (max-width: 480px) {
   .marquee-container {
     display: none;
+  }
+}
+
+/* Checkout Modal Styles */
+#checkout-modal {
+  backdrop-filter: blur(10px);
+  z-index: 9999 !important;
+}
+
+.checkout-input {
+  background: rgba(0, 0, 0, 0.5);
+  border: 1px solid rgba(212, 175, 55, 0.3);
+  transition: all 0.3s ease;
+}
+
+.checkout-input:focus {
+  border-color: var(--gold-primary);
+  box-shadow: 0 0 15px rgba(212, 175, 55, 0.2);
+  outline: none;
+}
+
+/* Cart Notification Popup */
+.cart-notification {
+  position: fixed;
+  bottom: 100px;
+  left: 50%;
+  transform: translateX(-50%) translateY(150px);
+  opacity: 0;
+  background: linear-gradient(135deg, var(--gold-primary), var(--gold-secondary));
+  color: black;
+  padding: 12px 20px;
+  border-radius: 12px;
+  font-weight: 600;
+  font-size: 14px;
+  box-shadow: 0 8px 25px rgba(212, 175, 55, 0.4);
+  z-index: 9998;
+  transition: all 0.4s ease;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  pointer-events: none;
+  visibility: hidden;
+}
+
+.cart-notification.show {
+  transform: translateX(-50%) translateY(0);
+  opacity: 1;
+  visibility: visible;
+}
+
+.cart-notification svg {
+  width: 20px;
+  height: 20px;
+}
+
+/* Checkout Modal Transitions */
+#checkout-modal {
+  backdrop-filter: blur(10px);
+  z-index: 9999 !important;
+  opacity: 0;
+  transition: opacity 0.3s ease-in-out;
+}
+
+#checkout-modal.show {
+  opacity: 1;
+}
+
+#checkout-modal .bg-black-95 {
+  transform: scale(0.9) translateY(20px);
+  opacity: 0;
+  transition: all 0.3s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+}
+
+#checkout-modal.show .bg-black-95 {
+  transform: scale(1) translateY(0);
+  opacity: 1;
+}
+
+/* Loading Overlay Transitions */
+#loading-overlay {
+  backdrop-filter: blur(5px);
+  z-index: 10000 !important;
+  opacity: 0;
+  transition: opacity 0.3s ease-in-out;
+}
+
+#loading-overlay.show {
+  opacity: 1;
+}
+
+#loading-overlay .text-center {
+  transform: scale(0.8);
+  opacity: 0;
+  transition: all 0.3s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+}
+
+#loading-overlay.show .text-center {
+  transform: scale(1);
+  opacity: 1;
+}
+
+/* Success Modal Transitions */
+#success-modal {
+  z-index: 10001 !important;
+  opacity: 0;
+  transition: opacity 0.3s ease-in-out;
+}
+
+#success-modal.show {
+  opacity: 1;
+}
+
+#success-modal .bg-black-95 {
+  transform: scale(0.8) rotateX(10deg);
+  opacity: 0;
+  transition: all 0.4s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+}
+
+#success-modal.show .bg-black-95 {
+  transform: scale(1) rotateX(0deg);
+  opacity: 1;
+}
+
+/* Success Icon Animation */
+.success-icon {
+  background: linear-gradient(135deg, #10b981, #059669);
+  box-shadow: 0 8px 25px rgba(16, 185, 129, 0.3);
+  transform: scale(0);
+  animation: successPop 0.6s cubic-bezier(0.68, -0.55, 0.265, 1.55) forwards;
+}
+
+@keyframes successPop {
+  0% {
+    transform: scale(0) rotate(-180deg);
+  }
+  50% {
+    transform: scale(1.2) rotate(10deg);
+  }
+  100% {
+    transform: scale(1) rotate(0deg);
+  }
+}
+
+/* Minimalistic Checkbox Styles */
+input[type="radio"] {
+  appearance: none;
+  width: 20px;
+  height: 20px;
+  border: 2px solid var(--gold-primary);
+  border-radius: 50%;
+  background: transparent;
+  cursor: pointer;
+  position: relative;
+  transition: all 0.3s ease;
+  margin-right: 12px;
+}
+
+input[type="radio"]:checked {
+  background: var(--gold-primary);
+  box-shadow: 0 0 15px rgba(212, 175, 55, 0.3);
+}
+
+input[type="radio"]:checked::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 8px;
+  height: 8px;
+  background: black;
+  border-radius: 50%;
+}
+
+input[type="radio"]:hover {
+  border-color: var(--gold-secondary);
+  transform: scale(1.1);
+}
+
+.payment-option {
+  background: rgba(0, 0, 0, 0.3);
+  border: 1px solid rgba(212, 175, 55, 0.3);
+  transition: all 0.3s ease;
+  cursor: pointer;
+}
+
+.payment-option:hover {
+  background: rgba(0, 0, 0, 0.5);
+  border-color: var(--gold-primary);
+}
+
+.payment-option input[type="radio"]:checked + span {
+  color: var(--gold-primary);
+}
+
+/* Loading Overlay */
+#loading-overlay {
+  backdrop-filter: blur(5px);
+  z-index: 10000 !important;
+}
+
+/* Success Modal */
+#success-modal {
+  z-index: 10001 !important;
+}
+
+.spinner {
+  border: 4px solid rgba(212, 175, 55, 0.3);
+  border-top: 4px solid var(--gold-primary);
+  border-radius: 50%;
+  width: 64px;
+  height: 64px;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+/* Success Modal */
+.success-icon {
+  background: linear-gradient(135deg, #10b981, #059669);
+  box-shadow: 0 8px 25px rgba(16, 185, 129, 0.3);
+}
+
+/* Responsive Checkout */
+@media (max-width: 1024px) {
+  #checkout-modal .grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 640px) {
+  #checkout-modal .p-6 {
+    padding: 1rem;
+  }
+  
+  #checkout-modal .text-2xl {
+    font-size: 1.5rem;
+  }
+  
+  #checkout-modal .text-lg {
+    font-size: 1rem;
+  }
+  
+  .checkout-input {
+    padding: 0.75rem;
+    font-size: 0.875rem;
   }
 }
